@@ -70,6 +70,32 @@ This file is created automatically after the first saved expense.
 
 Install the .NET 10 SDK and then rerun the command.
 
+### macOS says Apple could not verify the app
+
+The packaged macOS binary is not code-signed or notarized, so macOS Gatekeeper may block it the first time.
+
+You can still open it by using one of these methods:
+
+#### Option 1: Open from Finder
+
+1. Locate the `FinancialControlApp` file in Finder.
+2. Right-click the file.
+3. Select `Open`.
+4. Confirm by clicking `Open` again.
+
+#### Option 2: Allow it in System Settings
+
+1. Try opening the application once.
+2. Open **System Settings > Privacy & Security**.
+3. Find the blocked application message near the bottom.
+4. Select **Open Anyway**.
+
+#### Option 3: Remove the quarantine flag in Terminal
+
+```bash
+xattr -dr com.apple.quarantine FinancialControlApp
+```
+
 ### Project does not start
 
 Make sure you are running the command from the repository root, or from inside the `FinancialControlApp` directory.
