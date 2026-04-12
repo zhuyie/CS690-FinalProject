@@ -194,7 +194,10 @@ internal sealed class FinancialControlApp
     {
         while (true)
         {
-            var input = AnsiConsole.Ask<string>("[yellow]Enter date (YYYY-MM-DD) or press Enter for today:[/]").Trim();
+            var input = AnsiConsole.Prompt(
+                new TextPrompt<string>("[yellow]Enter date (YYYY-MM-DD) or press Enter for today:[/]")
+                    .AllowEmpty())
+                .Trim();
             if (string.IsNullOrWhiteSpace(input))
             {
                 return DateOnly.FromDateTime(DateTime.Today);
