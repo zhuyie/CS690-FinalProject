@@ -18,7 +18,7 @@ dotnet run --project FinancialControlApp/FinancialControlApp.csproj
 
 ## Main Menu
 
-After the application starts, choose one of these options:
+After the application starts, use the keyboard to move through the menu and press Enter to select an option:
 
 1. `Log Daily Expense`
 2. `View Transaction History`
@@ -27,9 +27,9 @@ After the application starts, choose one of these options:
 
 ## How To Log A Daily Expense
 
-1. Select `1` from the main menu.
+1. Choose `Log Daily Expense` from the main menu and press Enter.
 2. Enter the expense amount.
-3. Select a category from the numbered list.
+3. Choose a category from the selection menu.
 4. Enter a date in `YYYY-MM-DD` format, or press Enter to use today.
 5. Enter a short description.
 6. Confirm that the expense was saved.
@@ -43,7 +43,7 @@ Example:
 
 ## How To View Transaction History
 
-1. Select `2` from the main menu.
+1. Choose `View Transaction History` from the main menu and press Enter.
 2. Review the list of saved transactions.
 3. The application shows transactions in reverse chronological order.
 
@@ -56,7 +56,7 @@ The history view includes:
 
 ## How To View Spending Breakdown
 
-1. Select `3` from the main menu.
+1. Choose `View Spending Breakdown` from the main menu and press Enter.
 2. Review the grouped spending summary.
 
 The spending breakdown shows:
