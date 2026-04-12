@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="380" viewBox="0 0 520 380">
+  <rect width="520" height="380" fill="#ffffff"/>
+  <text x="26" y="42" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#202124">Log Expense</text>
+  <line x1="26" y1="58" x2="494" y2="58" stroke="#d0d7de" stroke-width="2"/>
+  <rect x="40" y="95" width="400" height="250" rx="28" fill="#1f1f1f"/>
+  <text x="240" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#f5f5f5">Add New Expense</text>
+  <line x1="56" y1="150" x2="424" y2="150" stroke="#bdbdbd" stroke-width="2"/>
+  <text x="62" y="192" font-family="Arial, sans-serif" font-size="15" fill="#f5f5f5">Amount: $ 6.50</text>
+  <text x="62" y="224" font-family="Arial, sans-serif" font-size="15" fill="#f5f5f5">Category: Coffee</text>
+  <text x="62" y="256" font-family="Arial, sans-serif" font-size="15" fill="#f5f5f5">Date: 2026-04-12</text>
+  <text x="62" y="288" font-family="Arial, sans-serif" font-size="15" fill="#f5f5f5">Description: Morning latte</text>
+  <rect x="62" y="306" width="118" height="24" rx="6" fill="#2b2b2b" stroke="#bdbdbd" stroke-width="1.5"/>
+  <text x="121" y="323" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Save Expense</text>
+</svg>
