@@ -7,6 +7,11 @@ Iteration 1 delivers a working console application for Daniel's personal expense
 - [Deployment Guide](DEPLOYMENT.md)
 - [User Guide](USER_GUIDE.md)
 
+## Release
+
+- Iteration releases are published on GitHub Releases with downloadable binaries attached.
+- Tagged versions such as `v0.1.1` are intended to produce packaged release artifacts automatically.
+
 ## Repository Structure
 
 - `CS690-FinalProject.sln` - top-level solution file

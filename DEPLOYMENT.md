@@ -2,6 +2,12 @@
 
 This guide explains how to download and run the Iteration 1 version of the Financial Control application.
 
+## Preferred Download Option
+
+If a GitHub Release is available, download the packaged binary for your platform from the repository's **Releases** page.
+
+If you prefer to run from source, follow the steps below.
+
 ## Requirements
 
 - .NET 10 SDK installed
