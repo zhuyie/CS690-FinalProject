@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.Json;
+using Spectre.Console;
 
 var app = new FinancialControlApp();
 app.Run();
@@ -35,45 +37,56 @@ internal sealed class FinancialControlApp
 
         while (true)
         {
-            ShowHeader("Financial Control for Daniel");
-            Console.WriteLine("1. Log Daily Expense");
-            Console.WriteLine("2. View Transaction History");
-            Console.WriteLine("3. View Spending Breakdown");
-            Console.WriteLine("4. Exit");
-            Console.WriteLine();
+            AnsiConsole.Clear();
+            ShowHeader();
 
-            var choice = Prompt("Select an option: ");
-            Console.Clear();
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Choose an option[/]")
+                    .PageSize(10)
+                    .AddChoices(
+                        "Log Daily Expense",
+                        "View Transaction History",
+                        "View Spending Breakdown",
+                        "Exit"));
 
             switch (choice)
             {
-                case "1":
+                case "Log Daily Expense":
                     LogExpense();
                     break;
-                case "2":
+                case "View Transaction History":
                     ShowTransactionHistory();
                     break;
-                case "3":
+                case "View Spending Breakdown":
                     ShowSpendingBreakdown();
                     break;
-                case "4":
-                    Console.WriteLine("Goodbye.");
+                case "Exit":
+                    AnsiConsole.MarkupLine("[green]Goodbye.[/]");
                     return;
-                default:
-                    ShowMessage("Invalid option. Please choose 1-4.");
-                    break;
             }
         }
     }
 
     private void LogExpense()
     {
-        ShowHeader("Log Daily Expense");
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Log Daily Expense[/]").RuleStyle("grey").LeftJustified());
 
         var amount = PromptForAmount();
-        var category = PromptForCategory();
+        var category = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("[yellow]Select a category[/]")
+                .PageSize(10)
+                .AddChoices(Categories));
         var date = PromptForDate();
-        var description = PromptForRequiredText("Enter a short description: ");
+        var description = AnsiConsole.Ask<string>("[yellow]Enter a short description:[/]").Trim();
+
+        while (string.IsNullOrWhiteSpace(description))
+        {
+            AnsiConsole.MarkupLine("[red]Description cannot be empty.[/]");
+            description = AnsiConsole.Ask<string>("[yellow]Enter a short description:[/]").Trim();
+        }
 
         var transaction = new Transaction
         {
@@ -87,15 +100,18 @@ internal sealed class FinancialControlApp
         _transactions.Add(transaction);
         SaveTransactions();
 
-        Console.WriteLine();
-        Console.WriteLine("Expense saved successfully.");
-        Console.WriteLine($"{transaction.Date:yyyy-MM-dd} | {transaction.Category} | ${transaction.Amount:F2} | {transaction.Description}");
+        AnsiConsole.MarkupLine("\n[green]Expense saved successfully.[/]");
+        var panel = new Panel($"{transaction.Date:yyyy-MM-dd} | {transaction.Category} | ${transaction.Amount:F2} | {transaction.Description}")
+            .Header("Saved Entry")
+            .Border(BoxBorder.Rounded);
+        AnsiConsole.Write(panel);
         Pause();
     }
 
     private void ShowTransactionHistory()
     {
-        ShowHeader("Transaction History");
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Transaction History[/]").RuleStyle("grey").LeftJustified());
 
         if (_transactions.Count == 0)
         {
@@ -108,24 +124,25 @@ internal sealed class FinancialControlApp
             .ThenByDescending(t => t.CreatedAt)
             .ToList();
 
-        Console.WriteLine("Date         Category        Amount     Description");
-        Console.WriteLine("-------------------------------------------------------------");
+        var table = new Table().Border(TableBorder.Rounded).AddColumn("Date").AddColumn("Category").AddColumn("Amount").AddColumn("Description");
 
         foreach (var transaction in orderedTransactions)
         {
-            Console.WriteLine(
-                $"{transaction.Date:yyyy-MM-dd}   " +
-                $"{transaction.Category.PadRight(13)} " +
-                $"${transaction.Amount,8:F2}   " +
-                $"{transaction.Description}");
+            table.AddRow(
+                transaction.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                transaction.Category,
+                $"[green]${transaction.Amount:F2}[/]",
+                Markup.Escape(transaction.Description));
         }
 
+        AnsiConsole.Write(table);
         Pause();
     }
 
     private void ShowSpendingBreakdown()
     {
-        ShowHeader("Spending Breakdown");
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Spending Breakdown[/]").RuleStyle("grey").LeftJustified());
 
         if (_transactions.Count == 0)
         {
@@ -135,73 +152,49 @@ internal sealed class FinancialControlApp
 
         var groups = _transactions
             .GroupBy(t => t.Category)
-            .Select(group => new
-            {
-                Category = group.Key,
-                Total = group.Sum(t => t.Amount),
-                Count = group.Count()
-            })
+            .Select(group => new SpendingSummary(group.Key, group.Count(), group.Sum(t => t.Amount)))
             .OrderByDescending(group => group.Total)
             .ToList();
 
         var grandTotal = groups.Sum(group => group.Total);
-
-        Console.WriteLine("Category        Entries     Total");
-        Console.WriteLine("--------------------------------------");
+        var table = new Table().Border(TableBorder.Rounded).AddColumn("Category").AddColumn("Entries").AddColumn("Total");
 
         foreach (var group in groups)
         {
-            Console.WriteLine(
-                $"{group.Category.PadRight(14)}" +
-                $"{group.Count,7}   " +
-                $"${group.Total,8:F2}");
+            table.AddRow(
+                group.Category,
+                group.Count.ToString(CultureInfo.InvariantCulture),
+                $"[green]${group.Total:F2}[/]");
         }
 
-        Console.WriteLine("--------------------------------------");
-        Console.WriteLine($"Monthly Total: ${grandTotal:F2}");
+        AnsiConsole.Write(table);
+        AnsiConsole.Write(
+            new Panel($"[bold]Monthly Total:[/] [green]${grandTotal:F2}[/]")
+                .Border(BoxBorder.Rounded)
+                .Header("Summary"));
+
         Pause();
     }
 
-    private decimal PromptForAmount()
+    private static decimal PromptForAmount()
     {
         while (true)
         {
-            var input = Prompt("Enter amount: $");
+            var input = AnsiConsole.Ask<string>("[yellow]Enter amount:[/] $").Trim();
             if (decimal.TryParse(input, out var amount) && amount > 0)
             {
                 return decimal.Round(amount, 2);
             }
 
-            Console.WriteLine("Please enter a valid positive amount.");
+            AnsiConsole.MarkupLine("[red]Please enter a valid positive amount.[/]");
         }
     }
 
-    private string PromptForCategory()
+    private static DateOnly PromptForDate()
     {
         while (true)
         {
-            Console.WriteLine("Select a category:");
-
-            for (var i = 0; i < Categories.Length; i++)
-            {
-                Console.WriteLine($"{i + 1}. {Categories[i]}");
-            }
-
-            var input = Prompt("Choice: ");
-            if (int.TryParse(input, out var choice) && choice >= 1 && choice <= Categories.Length)
-            {
-                return Categories[choice - 1];
-            }
-
-            Console.WriteLine("Please select one of the listed categories.");
-        }
-    }
-
-    private DateOnly PromptForDate()
-    {
-        while (true)
-        {
-            var input = Prompt("Enter date (YYYY-MM-DD) or press Enter for today: ");
+            var input = AnsiConsole.Ask<string>("[yellow]Enter date (YYYY-MM-DD) or press Enter for today:[/]").Trim();
             if (string.IsNullOrWhiteSpace(input))
             {
                 return DateOnly.FromDateTime(DateTime.Today);
@@ -212,21 +205,7 @@ internal sealed class FinancialControlApp
                 return date;
             }
 
-            Console.WriteLine("Please enter a valid date in YYYY-MM-DD format.");
-        }
-    }
-
-    private string PromptForRequiredText(string message)
-    {
-        while (true)
-        {
-            var input = Prompt(message);
-            if (!string.IsNullOrWhiteSpace(input))
-            {
-                return input.Trim();
-            }
-
-            Console.WriteLine("This field cannot be empty.");
+            AnsiConsole.MarkupLine("[red]Please enter a valid date in YYYY-MM-DD format.[/]");
         }
     }
 
@@ -258,30 +237,24 @@ internal sealed class FinancialControlApp
         File.WriteAllText(_transactionsPath, json);
     }
 
-    private static void ShowHeader(string title)
+    private static void ShowHeader()
     {
-        Console.WriteLine(title);
-        Console.WriteLine(new string('=', title.Length));
-        Console.WriteLine();
-    }
-
-    private static string Prompt(string message)
-    {
-        Console.Write(message);
-        return Console.ReadLine()?.Trim() ?? string.Empty;
+        AnsiConsole.Write(
+            new FigletText("Financial Control")
+                .LeftJustified()
+                .Color(Color.Green));
+        AnsiConsole.MarkupLine("[grey]A simple expense tracker for Daniel[/]\n");
     }
 
     private static void Pause()
     {
-        Console.WriteLine();
-        Console.Write("Press Enter to continue...");
+        AnsiConsole.MarkupLine("\n[grey]Press Enter to continue...[/]");
         Console.ReadLine();
-        Console.Clear();
     }
 
     private static void ShowMessage(string message)
     {
-        Console.WriteLine(message);
+        AnsiConsole.MarkupLine($"[yellow]{Markup.Escape(message)}[/]");
         Pause();
     }
 }
@@ -295,3 +268,5 @@ internal sealed class Transaction
     public string Description { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
+
+internal sealed record SpendingSummary(string Category, int Count, decimal Total);
