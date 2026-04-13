@@ -4,7 +4,7 @@ using Spectre.Console;
 
 namespace FinancialControlApp;
 
-internal sealed class AppShell(TransactionService transactionService)
+internal sealed class AppShell(TransactionService transactionService, BudgetService budgetService)
 {
     public void Run()
     {
@@ -21,6 +21,7 @@ internal sealed class AppShell(TransactionService transactionService)
                         "Log Daily Expense",
                         "View Transaction History",
                         "View Spending Breakdown",
+                        "Manage Budgets",
                         "Exit"));
 
             switch (choice)
@@ -33,6 +34,9 @@ internal sealed class AppShell(TransactionService transactionService)
                     break;
                 case "View Spending Breakdown":
                     ShowSpendingBreakdown();
+                    break;
+                case "Manage Budgets":
+                    ManageBudgets();
                     break;
                 case "Exit":
                     AnsiConsole.MarkupLine("[green]Goodbye.[/]");
@@ -126,9 +130,14 @@ internal sealed class AppShell(TransactionService transactionService)
 
     private static decimal PromptForAmount()
     {
+        return PromptForAmount("[yellow]Enter amount:[/] $");
+    }
+
+    private static decimal PromptForAmount(string prompt)
+    {
         while (true)
         {
-            var input = AnsiConsole.Ask<string>("[yellow]Enter amount:[/] $").Trim();
+            var input = AnsiConsole.Ask<string>(prompt).Trim();
             if (decimal.TryParse(input, out var amount) && amount > 0)
             {
                 return decimal.Round(amount, 2);
@@ -192,6 +201,83 @@ internal sealed class AppShell(TransactionService transactionService)
     private static void ShowMessage(string message)
     {
         AnsiConsole.MarkupLine($"[yellow]{Markup.Escape(message)}[/]");
+        Pause();
+    }
+
+    private void ManageBudgets()
+    {
+        while (true)
+        {
+            AnsiConsole.Clear();
+            AnsiConsole.Write(new Rule("[yellow]Manage Budgets[/]").RuleStyle("grey").LeftJustified());
+
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Budget options[/]")
+                    .AddChoices("Set Monthly Limit", "View Budget Status", "Back"));
+
+            switch (choice)
+            {
+                case "Set Monthly Limit":
+                    SetMonthlyLimit();
+                    break;
+                case "View Budget Status":
+                    ShowBudgetStatus();
+                    break;
+                case "Back":
+                    return;
+            }
+        }
+    }
+
+    private void SetMonthlyLimit()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Set Monthly Limit[/]").RuleStyle("grey").LeftJustified());
+
+        var category = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("[yellow]Select a category[/]")
+                .PageSize(10)
+                .AddChoices(TransactionService.DefaultCategories));
+        var monthlyLimit = PromptForAmount("[yellow]Enter monthly limit:[/] $");
+
+        var budget = budgetService.SetBudget(category, monthlyLimit);
+
+        AnsiConsole.MarkupLine($"\n[green]Budget saved.[/] {Markup.Escape(budget.Category)} limit is [green]${budget.MonthlyLimit:F2}[/].");
+        Pause();
+    }
+
+    private void ShowBudgetStatus()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Budget Status[/]").RuleStyle("grey").LeftJustified());
+
+        var statuses = budgetService.GetBudgetStatuses();
+        if (statuses.Count == 0)
+        {
+            ShowMessage("No budgets found. Add a monthly limit first.");
+            return;
+        }
+
+        var table = new Table().Border(TableBorder.Rounded)
+            .AddColumn("Category")
+            .AddColumn("Limit")
+            .AddColumn("Spent")
+            .AddColumn("Remaining")
+            .AddColumn("Status");
+
+        foreach (var status in statuses)
+        {
+            table.AddRow(
+                status.Category,
+                $"${status.MonthlyLimit:F2}",
+                $"${status.Spent:F2}",
+                $"${status.Remaining:F2}",
+                Markup.Escape(status.StatusLabel));
+        }
+
+        AnsiConsole.Write(table);
         Pause();
     }
 }
