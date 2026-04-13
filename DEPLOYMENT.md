@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide explains how to download and run the Iteration 1 version of the Financial Control application.
+This guide explains how to download and run the current version of the Financial Control application.
 
 ## Preferred Download Option
 
@@ -52,17 +52,29 @@ When the application starts, you should see a console menu with these options:
 1. Log Daily Expense
 2. View Transaction History
 3. View Spending Breakdown
-4. Exit
+4. Manage Budgets
+5. Track Bills
+6. Exit
 
 ## Data Storage
 
-The application stores saved transactions locally in:
+The application stores saved data locally in:
 
 ```text
 FinancialControlApp/data/transactions.json
+FinancialControlApp/data/budgets.json
+FinancialControlApp/data/bills.json
 ```
 
-This file is created automatically after the first saved expense.
+These files are created automatically after the related data is saved for the first time.
+
+## Run Tests
+
+From the repository root, run:
+
+```bash
+dotnet test CS690-FinalProject.sln
+```
 
 ## Troubleshooting
 

@@ -7,6 +7,10 @@ This guide explains how to use the main features of the Financial Control applic
 - Log a daily expense
 - View saved transaction history
 - View spending totals by category
+- Set monthly category budgets
+- View budget status
+- Add bills with due dates
+- View upcoming bills
 
 ## Start The App
 
@@ -23,7 +27,9 @@ After the application starts, use the keyboard to move through the menu and pres
 1. `Log Daily Expense`
 2. `View Transaction History`
 3. `View Spending Breakdown`
-4. `Exit`
+4. `Manage Budgets`
+5. `Track Bills`
+6. `Exit`
 
 ## How To Log A Daily Expense
 
@@ -66,14 +72,49 @@ The spending breakdown shows:
 - Total spending for that category
 - Overall total spending
 
+## How To Manage Budgets
+
+1. Choose `Manage Budgets` from the main menu.
+2. Select `Set Monthly Limit` to create or update a budget.
+3. Choose a category from the selection menu.
+4. Enter the monthly budget amount.
+5. Select `View Budget Status` to review progress.
+
+The budget status view includes:
+
+- Category
+- Monthly limit
+- Amount spent
+- Remaining amount
+- Status: `On track`, `Near limit`, or `Over limit`
+
+## How To Track Bills
+
+1. Choose `Track Bills` from the main menu.
+2. Select `Add Bill` to create a new bill.
+3. Enter the bill name.
+4. Enter the bill amount.
+5. Enter the due date in `YYYY-MM-DD` format.
+6. Select `View Upcoming Bills` to review saved bills.
+
+The bills view includes:
+
+- Bill name
+- Due date
+- Amount
+- Status: `Upcoming`, `Due soon`, or `Overdue`
+
 ## Example Use Scenario
 
 1. Log a coffee purchase.
-2. Log a breakfast purchase.
-3. Open transaction history to verify both entries were saved.
-4. Open spending breakdown to see totals by category.
+2. Set a monthly coffee budget.
+3. Add an upcoming rent bill.
+4. Open transaction history to verify entries were saved.
+5. Open spending breakdown to see totals by category.
+6. Review budget status.
+7. Review upcoming bills.
 
 ## Notes
 
-- Transactions are saved locally between runs.
-- If no transactions have been entered yet, the history and summary screens will show a message instead of data.
+- Transactions, budgets, and bills are saved locally between runs.
+- If no data has been entered yet, the related views will show a message instead of data.
