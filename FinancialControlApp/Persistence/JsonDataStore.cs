@@ -5,14 +5,15 @@ namespace FinancialControlApp.Persistence;
 
 internal sealed class JsonDataStore
 {
-    private readonly string _dataDirectory = Path.Combine(AppContext.BaseDirectory, "data");
+    private readonly string _dataDirectory;
     private readonly string _transactionsPath;
     private readonly string _budgetsPath;
     private readonly string _billsPath;
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-    public JsonDataStore()
+    public JsonDataStore(string? baseDirectory = null)
     {
+        _dataDirectory = Path.Combine(baseDirectory ?? AppContext.BaseDirectory, "data");
         _transactionsPath = Path.Combine(_dataDirectory, "transactions.json");
         _budgetsPath = Path.Combine(_dataDirectory, "budgets.json");
         _billsPath = Path.Combine(_dataDirectory, "bills.json");
