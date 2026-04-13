@@ -1,5 +1,6 @@
 using FinancialControlApp.Persistence;
 using FinancialControlApp.Services;
+using Xunit;
 
 namespace FinancialControlApp.Tests;
 
