@@ -51,6 +51,40 @@ public sealed class ServiceTests : IDisposable
     }
 
     [Fact]
+    public void GetBudgetStatuses_ReturnsOverLimitWhenSpendingExceedsBudget()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+        var budgetService = new BudgetService(store, transactionService);
+
+        transactionService.AddTransaction(70m, "Coffee", new DateOnly(2026, 4, 13), "Week 1");
+        transactionService.AddTransaction(50m, "Coffee", new DateOnly(2026, 4, 14), "Week 2");
+        budgetService.SetBudget("Coffee", 100m);
+
+        var status = budgetService.GetBudgetStatuses().Single();
+
+        Assert.Equal("Over limit", status.StatusLabel);
+        Assert.Equal(120m, status.Spent);
+        Assert.Equal(-20m, status.Remaining);
+    }
+
+    [Fact]
+    public void SetBudget_UpdatesExistingBudgetInsteadOfCreatingDuplicate()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+        var budgetService = new BudgetService(store, transactionService);
+
+        budgetService.SetBudget("Transport", 50m);
+        budgetService.SetBudget("Transport", 75m);
+
+        var statuses = budgetService.GetBudgetStatuses();
+
+        Assert.Single(statuses);
+        Assert.Equal(75m, statuses[0].MonthlyLimit);
+    }
+
+    [Fact]
     public void GetUpcomingBills_ReturnsBillsSortedByDueDate()
     {
         var store = new JsonDataStore(_baseDirectory);
@@ -77,6 +111,33 @@ public sealed class ServiceTests : IDisposable
         var status = billService.GetBillStatusLabel(bill, new DateOnly(2026, 4, 13));
 
         Assert.Equal("Due soon", status);
+    }
+
+    [Fact]
+    public void GetBillStatusLabel_ReturnsOverdueForPastBills()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var billService = new BillService(store);
+        var bill = billService.AddBill("Utilities", 120m, new DateOnly(2026, 4, 10));
+
+        var status = billService.GetBillStatusLabel(bill, new DateOnly(2026, 4, 13));
+
+        Assert.Equal("Overdue", status);
+    }
+
+    [Fact]
+    public void GetTransactions_ReturnsNewestTransactionsFirst()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+
+        transactionService.AddTransaction(4m, "Coffee", new DateOnly(2026, 4, 10), "Old");
+        transactionService.AddTransaction(9m, "Lunch", new DateOnly(2026, 4, 15), "New");
+
+        var transactions = transactionService.GetTransactions();
+
+        Assert.Equal("New", transactions[0].Description);
+        Assert.Equal("Old", transactions[1].Description);
     }
 
     public void Dispose()
