@@ -4,7 +4,7 @@ using Spectre.Console;
 
 namespace FinancialControlApp;
 
-internal sealed class AppShell(TransactionService transactionService, BudgetService budgetService)
+internal sealed class AppShell(TransactionService transactionService, BudgetService budgetService, BillService billService)
 {
     public void Run()
     {
@@ -22,6 +22,7 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
                         "View Transaction History",
                         "View Spending Breakdown",
                         "Manage Budgets",
+                        "Track Bills",
                         "Exit"));
 
             switch (choice)
@@ -37,6 +38,9 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
                     break;
                 case "Manage Budgets":
                     ManageBudgets();
+                    break;
+                case "Track Bills":
+                    TrackBills();
                     break;
                 case "Exit":
                     AnsiConsole.MarkupLine("[green]Goodbye.[/]");
@@ -149,13 +153,21 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
 
     private static DateOnly PromptForDate()
     {
+        return PromptForDate("[yellow]Enter date (YYYY-MM-DD) or press Enter for today:[/]", allowEmpty: true);
+    }
+
+    private static DateOnly PromptForDate(string prompt, bool allowEmpty)
+    {
         while (true)
         {
-            var input = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Enter date (YYYY-MM-DD) or press Enter for today:[/]")
-                    .AllowEmpty())
-                .Trim();
-            if (string.IsNullOrWhiteSpace(input))
+            var textPrompt = new TextPrompt<string>(prompt);
+            if (allowEmpty)
+            {
+                textPrompt.AllowEmpty();
+            }
+
+            var input = AnsiConsole.Prompt(textPrompt).Trim();
+            if (string.IsNullOrWhiteSpace(input) && allowEmpty)
             {
                 return DateOnly.FromDateTime(DateTime.Today);
             }
@@ -275,6 +287,78 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
                 $"${status.Spent:F2}",
                 $"${status.Remaining:F2}",
                 Markup.Escape(status.StatusLabel));
+        }
+
+        AnsiConsole.Write(table);
+        Pause();
+    }
+
+    private void TrackBills()
+    {
+        while (true)
+        {
+            AnsiConsole.Clear();
+            AnsiConsole.Write(new Rule("[yellow]Track Bills[/]").RuleStyle("grey").LeftJustified());
+
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Bill options[/]")
+                    .AddChoices("Add Bill", "View Upcoming Bills", "Back"));
+
+            switch (choice)
+            {
+                case "Add Bill":
+                    AddBill();
+                    break;
+                case "View Upcoming Bills":
+                    ShowUpcomingBills();
+                    break;
+                case "Back":
+                    return;
+            }
+        }
+    }
+
+    private void AddBill()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Add Bill[/]").RuleStyle("grey").LeftJustified());
+
+        var name = PromptForRequiredText("[yellow]Enter bill name:[/]");
+        var amount = PromptForAmount();
+        var dueDate = PromptForDate("[yellow]Enter due date (YYYY-MM-DD):[/]", allowEmpty: false);
+
+        var bill = billService.AddBill(name, amount, dueDate);
+
+        AnsiConsole.MarkupLine($"\n[green]Bill saved.[/] {Markup.Escape(bill.Name)} due on [green]{bill.DueDate:yyyy-MM-dd}[/].");
+        Pause();
+    }
+
+    private void ShowUpcomingBills()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Upcoming Bills[/]").RuleStyle("grey").LeftJustified());
+
+        var bills = billService.GetUpcomingBills();
+        if (bills.Count == 0)
+        {
+            ShowMessage("No upcoming bills found.");
+            return;
+        }
+
+        var table = new Table().Border(TableBorder.Rounded)
+            .AddColumn("Name")
+            .AddColumn("Due Date")
+            .AddColumn("Amount")
+            .AddColumn("Status");
+
+        foreach (var bill in bills)
+        {
+            table.AddRow(
+                Markup.Escape(bill.Name),
+                bill.DueDate.ToString("yyyy-MM-dd"),
+                $"[green]${bill.Amount:F2}[/]",
+                Markup.Escape(billService.GetBillStatusLabel(bill)));
         }
 
         AnsiConsole.Write(table);
