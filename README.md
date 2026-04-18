@@ -1,6 +1,6 @@
 # CS690-FinalProject
 
-Iteration 2 delivers a modular console application for Daniel's personal expense tracking, budgeting, and bill tracking.
+The final iteration delivers a modular console application for Daniel's personal expense tracking, budgeting, bill tracking, and critical alerts.
 
 ## Documentation
 
@@ -29,3 +29,6 @@ dotnet test CS690-FinalProject.sln
 - `FR6` Budget Progress Indicator
 - `FR7` Bill Entry System
 - `FR8` Upcoming Bills Ledger
+- `FR9` Due Date Flags
+- `FR10` Liquidity Warning
+- `FR11` Budget Status Indicators

@@ -4,14 +4,22 @@ using Spectre.Console;
 
 namespace FinancialControlApp;
 
-internal sealed class AppShell(TransactionService transactionService, BudgetService budgetService, BillService billService)
+internal sealed class AppShell(
+    TransactionService transactionService,
+    BudgetService budgetService,
+    BillService billService,
+    SettingsService settingsService,
+    AlertService alertService)
 {
+    private bool _startupAlertsShown;
+
     public void Run()
     {
         while (true)
         {
             AnsiConsole.Clear();
             ShowHeader();
+            ShowStartupAlerts();
 
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -23,6 +31,8 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
                         "View Spending Breakdown",
                         "Manage Budgets",
                         "Track Bills",
+                        "Update Available Balance",
+                        "View Critical Alerts",
                         "Exit"));
 
             switch (choice)
@@ -41,6 +51,12 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
                     break;
                 case "Track Bills":
                     TrackBills();
+                    break;
+                case "Update Available Balance":
+                    UpdateAvailableBalance();
+                    break;
+                case "View Critical Alerts":
+                    ShowCriticalAlerts();
                     break;
                 case "Exit":
                     AnsiConsole.MarkupLine("[green]Goodbye.[/]");
@@ -216,6 +232,28 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
         Pause();
     }
 
+    private void ShowStartupAlerts()
+    {
+        if (_startupAlertsShown)
+        {
+            return;
+        }
+
+        _startupAlertsShown = true;
+        var alerts = alertService.GetAlerts();
+        if (alerts.Count == 0)
+        {
+            return;
+        }
+
+        var preview = alerts.Take(3).Select(alert => $"[yellow]-[/] {Markup.Escape(alert)}");
+        AnsiConsole.Write(
+            new Panel(string.Join(Environment.NewLine, preview))
+                .Header("Startup Alerts")
+                .Border(BoxBorder.Rounded));
+        AnsiConsole.WriteLine();
+    }
+
     private void ManageBudgets()
     {
         while (true)
@@ -362,6 +400,45 @@ internal sealed class AppShell(TransactionService transactionService, BudgetServ
         }
 
         AnsiConsole.Write(table);
+        Pause();
+    }
+
+    private void UpdateAvailableBalance()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Update Available Balance[/]").RuleStyle("grey").LeftJustified());
+
+        var balance = PromptForAmount("[yellow]Enter available balance:[/] $");
+        settingsService.SetAvailableBalance(balance);
+
+        AnsiConsole.MarkupLine($"\n[green]Available balance saved:[/] [green]${balance:F2}[/]");
+        Pause();
+    }
+
+    private void ShowCriticalAlerts()
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Rule("[yellow]Critical Alerts[/]").RuleStyle("grey").LeftJustified());
+
+        var alerts = alertService.GetAlerts();
+        if (alerts.Count == 0)
+        {
+            ShowMessage("No critical alerts.");
+            return;
+        }
+
+        var list = alerts.Select(alert => $"[yellow]-[/] {Markup.Escape(alert)}");
+        AnsiConsole.Write(
+            new Panel(string.Join(Environment.NewLine, list))
+                .Header("Alerts")
+                .Border(BoxBorder.Rounded));
+
+        var availableBalance = settingsService.GetAvailableBalance();
+        if (availableBalance.HasValue)
+        {
+            AnsiConsole.MarkupLine($"\n[grey]Available balance:[/] [green]${availableBalance.Value:F2}[/]");
+        }
+
         Pause();
     }
 }

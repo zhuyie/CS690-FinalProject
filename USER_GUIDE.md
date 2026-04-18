@@ -11,6 +11,8 @@ This guide explains how to use the main features of the Financial Control applic
 - View budget status
 - Add bills with due dates
 - View upcoming bills
+- Save an available balance for cash-flow checks
+- View critical alerts for due bills, budgets, and liquidity
 
 ## Start The App
 
@@ -29,7 +31,9 @@ After the application starts, use the keyboard to move through the menu and pres
 3. `View Spending Breakdown`
 4. `Manage Budgets`
 5. `Track Bills`
-6. `Exit`
+6. `Update Available Balance`
+7. `View Critical Alerts`
+8. `Exit`
 
 ## How To Log A Daily Expense
 
@@ -104,17 +108,41 @@ The bills view includes:
 - Amount
 - Status: `Upcoming`, `Due soon`, or `Overdue`
 
+## How To Update Available Balance
+
+1. Choose `Update Available Balance` from the main menu.
+2. Enter the amount of money currently available for upcoming bills.
+3. Confirm that the balance was saved.
+
+This value is used for liquidity warnings when upcoming bills exceed the saved balance.
+
+## How To View Critical Alerts
+
+1. Start the application and review any startup alerts shown near the top of the screen.
+2. Choose `View Critical Alerts` from the main menu to review the full alert list.
+3. Read the current warnings for bills, budgets, or liquidity.
+
+The alerts view may include:
+
+- Bills that are `Due soon`
+- Bills that are `Overdue`
+- Budgets that are `Near limit`
+- Budgets that are `Over limit`
+- A liquidity warning when upcoming bills exceed the available balance
+
 ## Example Use Scenario
 
 1. Log a coffee purchase.
 2. Set a monthly coffee budget.
 3. Add an upcoming rent bill.
-4. Open transaction history to verify entries were saved.
-5. Open spending breakdown to see totals by category.
-6. Review budget status.
-7. Review upcoming bills.
+4. Save the current available balance.
+5. Open transaction history to verify entries were saved.
+6. Open spending breakdown to see totals by category.
+7. Review budget status.
+8. Review upcoming bills.
+9. Open critical alerts to check for warnings.
 
 ## Notes
 
-- Transactions, budgets, and bills are saved locally between runs.
+- Transactions, budgets, bills, and available balance are saved locally between runs.
 - If no data has been entered yet, the related views will show a message instead of data.
