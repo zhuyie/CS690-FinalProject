@@ -126,6 +126,77 @@ public sealed class ServiceTests : IDisposable
     }
 
     [Fact]
+    public void GetAlerts_ReturnsLiquidityWarningWhenUpcomingBillsExceedAvailableBalance()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+        var budgetService = new BudgetService(store, transactionService);
+        var billService = new BillService(store);
+        var settingsService = new SettingsService(store);
+        var alertService = new AlertService(budgetService, billService, settingsService);
+
+        settingsService.SetAvailableBalance(500m);
+        billService.AddBill("Rent", 900m, new DateOnly(2026, 4, 18));
+
+        var alerts = alertService.GetAlerts(new DateOnly(2026, 4, 13));
+
+        Assert.Contains(alerts, alert => alert.Contains("exceeds available balance"));
+    }
+
+    [Fact]
+    public void GetAlerts_ReturnsBudgetWarningWhenCategoryIsNearLimit()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+        var budgetService = new BudgetService(store, transactionService);
+        var billService = new BillService(store);
+        var settingsService = new SettingsService(store);
+        var alertService = new AlertService(budgetService, billService, settingsService);
+
+        transactionService.AddTransaction(85m, "Coffee", new DateOnly(2026, 4, 13), "Coffee spending");
+        budgetService.SetBudget("Coffee", 100m);
+
+        var alerts = alertService.GetAlerts(new DateOnly(2026, 4, 13));
+
+        Assert.Contains(alerts, alert => alert.Contains("Coffee budget is near its limit"));
+    }
+
+    [Fact]
+    public void GetAlerts_ReturnsOverdueBillWarningForPastBills()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+        var budgetService = new BudgetService(store, transactionService);
+        var billService = new BillService(store);
+        var settingsService = new SettingsService(store);
+        var alertService = new AlertService(budgetService, billService, settingsService);
+
+        billService.AddBill("Utilities", 120m, new DateOnly(2026, 4, 10));
+
+        var alerts = alertService.GetAlerts(new DateOnly(2026, 4, 13));
+
+        Assert.Contains(alerts, alert => alert.Contains("Utilities is overdue"));
+    }
+
+    [Fact]
+    public void GetAlerts_DoesNotCountOverdueBillsInLiquidityWarning()
+    {
+        var store = new JsonDataStore(_baseDirectory);
+        var transactionService = new TransactionService(store);
+        var budgetService = new BudgetService(store, transactionService);
+        var billService = new BillService(store);
+        var settingsService = new SettingsService(store);
+        var alertService = new AlertService(budgetService, billService, settingsService);
+
+        settingsService.SetAvailableBalance(500m);
+        billService.AddBill("Missed Utility", 600m, new DateOnly(2026, 4, 10));
+
+        var alerts = alertService.GetAlerts(new DateOnly(2026, 4, 13));
+
+        Assert.DoesNotContain(alerts, alert => alert.Contains("exceeds available balance"));
+    }
+
+    [Fact]
     public void GetTransactions_ReturnsNewestTransactionsFirst()
     {
         var store = new JsonDataStore(_baseDirectory);

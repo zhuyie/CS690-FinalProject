@@ -54,7 +54,9 @@ When the application starts, you should see a console menu with these options:
 3. View Spending Breakdown
 4. Manage Budgets
 5. Track Bills
-6. Exit
+6. Update Available Balance
+7. View Critical Alerts
+8. Exit
 
 ## Data Storage
 
@@ -64,6 +66,7 @@ The application stores saved data locally in:
 FinancialControlApp/data/transactions.json
 FinancialControlApp/data/budgets.json
 FinancialControlApp/data/bills.json
+FinancialControlApp/data/settings.json
 ```
 
 These files are created automatically after the related data is saved for the first time.

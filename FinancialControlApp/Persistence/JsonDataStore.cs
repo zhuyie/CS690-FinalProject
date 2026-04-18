@@ -9,6 +9,7 @@ internal sealed class JsonDataStore
     private readonly string _transactionsPath;
     private readonly string _budgetsPath;
     private readonly string _billsPath;
+    private readonly string _settingsPath;
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
     public JsonDataStore(string? baseDirectory = null)
@@ -17,6 +18,7 @@ internal sealed class JsonDataStore
         _transactionsPath = Path.Combine(_dataDirectory, "transactions.json");
         _budgetsPath = Path.Combine(_dataDirectory, "budgets.json");
         _billsPath = Path.Combine(_dataDirectory, "bills.json");
+        _settingsPath = Path.Combine(_dataDirectory, "settings.json");
     }
 
     public List<Transaction> LoadTransactions()
@@ -98,5 +100,32 @@ internal sealed class JsonDataStore
         Directory.CreateDirectory(_dataDirectory);
         var json = JsonSerializer.Serialize(bills, _jsonOptions);
         File.WriteAllText(_billsPath, json);
+    }
+
+    public AppSettings LoadSettings()
+    {
+        Directory.CreateDirectory(_dataDirectory);
+
+        if (!File.Exists(_settingsPath))
+        {
+            return new AppSettings();
+        }
+
+        try
+        {
+            var json = File.ReadAllText(_settingsPath);
+            return JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions) ?? new AppSettings();
+        }
+        catch
+        {
+            return new AppSettings();
+        }
+    }
+
+    public void SaveSettings(AppSettings settings)
+    {
+        Directory.CreateDirectory(_dataDirectory);
+        var json = JsonSerializer.Serialize(settings, _jsonOptions);
+        File.WriteAllText(_settingsPath, json);
     }
 }
